@@ -1,15 +1,25 @@
-var read = require('./node_modules/node-readability'),
-    url = 'https://www.publico.pt/desporto/noticia/as-primeiras-imagens-da-confusao-depois-do-sporting-arouca-1751165';
+var Curl = require( './node_modules/node-libcurl' ).Curl,
+	extractor = require('./node_modules/unfluff'),
+	curl = new Curl(),
+	url = 'http://www.maisfutebol.iol.pt/champions/liga-campeoes/recorde-negativo-do-benfica-na-noite-dos-100-golos-de-messi';
 
-read(url, {
-  cleanRulers: [
-    function(obj, tag) {
+curl.setOpt( 'URL', url );
+curl.setOpt( 'FOLLOWLOCATION', true );
 
-    }
-  ]}, function(err, article, meta) {
+curl.on( 'end', function( statusCode, body, headers ) {
 
-    //console.log("# titulo: %s #\n\nconteudo: %s\n\nhtml: %s\n\nDOM: %s\n\nmeta: %s\n\n---", article.title, article.content, article.html, article.document, article.meta);
-    console.log("# titulo: %s #\n\nconteudo: %s\n\n---", article.title, article.content);
-    article.close(); 
+    var data = extractor(body);
 
-  });
+    console.info(data);
+
+    this.close();
+});
+
+curl.on( 'error', function ( err, errCode ) {
+
+    console.info('ERROR - '+errCode);
+
+    this.close();
+});
+
+curl.perform();
